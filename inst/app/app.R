@@ -994,10 +994,12 @@ server <- function(input, output, session) {
     last_ordered_lg     = NULL    # integer: the last LG number sent through orderLG()
   )
 
-  # Clean up the per-session temp file when the user disconnects
+  # Clean up the per-session temp file when the user disconnects.
+  # isolate() is required because onSessionEnded runs outside a reactive context.
   session$onSessionEnded(function() {
-    if (!is.null(rv$map_path) && file.exists(rv$map_path))
-      unlink(rv$map_path)
+    path <- isolate(rv$map_path)
+    if (!is.null(path) && file.exists(path))
+      unlink(path)
   })
   
   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
