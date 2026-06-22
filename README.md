@@ -1,7 +1,5 @@
 # Linkmapper
 
-<!-- FILL: replace placeholder URLs with actual repo and R-universe URLs once known -->
-
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![R >= 4.1.0](https://img.shields.io/badge/R-%3E%3D%204.1.0-blue.svg)](https://cran.r-project.org/)
 [![Platform: Shiny](https://img.shields.io/badge/Platform-Shiny-brightgreen.svg)](https://shiny.posit.co/)
@@ -33,21 +31,32 @@ R code. Linkmapper is available as a hosted web app and as an installable R pack
 
 ## Workflow
 
+Linkmapper enforces a sequential five-step pipeline. Each step unlocks only when
+the previous one completes successfully, so out-of-order analysis is not possible.
+
 ```mermaid
 flowchart LR
-  A[Upload .txt file] --> B[Prior analysis]
-  B --> C[Marker grouping]
-  C --> D[Marker ordering]
-  D --> E[Linkage map generation]
-  E --> F[QTL analysis]
+  A[("MAPMAKER .txt\nF2 or backcross")] --> B["1 · Prior analysis"]
+  B --> C["2 · Marker grouping"]
+  C --> D["3 · Marker ordering"]
+  D --> E["4 · Linkage mapping"]
+  E --> F["5 · QTL analysis"]
 
-  style A fill:#fef3e2,stroke:#d4820a,color:#2a2520
+  style A fill:#fff7ed,stroke:#d4820a,color:#2a2520
   style B fill:#e8f2ec,stroke:#4a7c59,color:#2a2520
   style C fill:#e8f2ec,stroke:#4a7c59,color:#2a2520
   style D fill:#e8f2ec,stroke:#4a7c59,color:#2a2520
   style E fill:#e8f2ec,stroke:#4a7c59,color:#2a2520
   style F fill:#e8f2ec,stroke:#4a7c59,color:#2a2520
 ```
+
+| Step | What you do | What you get |
+|---|---|---|
+| **1. Prior analysis** | Upload a MAPMAKER-format `.txt` file. Linkmapper reads the dataset and runs a chi-squared segregation test on every marker. | Dataset summary (individuals, markers, cross type, genotyping rate); missing data heatmap; distorted and non-distorted marker lists. Both plots download as PNG. |
+| **2. Marker grouping** | Set a LOD threshold (or accept the data-suggested value from `suggest_lod()`), a maximum recombination frequency, and a mapping function (Kosambi or Haldane). Optionally inspect the RF and LOD estimate for any marker pair. | Markers assigned to linkage groups; group count and sizes; two-point RF estimates for any chosen marker pair. |
+| **3. Marker ordering** | Choose an ordering algorithm: RECORD (default, minimises total recombinations), RCD (faster for large groups), or Unidirectional Growth (suited to predominantly heterozygous marker sets). Preview a single group before committing. | Ordered marker sequences within each linkage group, with log-likelihood scores. |
+| **4. Linkage mapping** | Set a map title, linkage group name prefix, and chromosome colour. Generate the full multi-group map. | Publication-ready static PNG; interactive plotly map for exploring marker positions and inter-marker distances. Both are downloadable. |
+| **5. QTL analysis** | Select a phenotype column from your dataset, choose interval mapping (IM) or composite interval mapping (CIM), and set a LOD significance threshold. | LOD score profile plotted across all linkage groups; QTL summary table with position, flanking markers, and LOD score. Results export as PNG and CSV. |
 
 ---
 
@@ -85,7 +94,7 @@ intercross) is bundled with the package and available from within the app.
 
 ### Hosted web app
 
-Visit <!-- FILL: add ShinyApps.io URL --> — no installation required.
+Visit [the hosted web app](https://project-genaxy.shinyapps.io/Linkmapper/) (no installation required).
 
 ### R package (local)
 
@@ -94,6 +103,10 @@ Visit <!-- FILL: add ShinyApps.io URL --> — no installation required.
 install.packages("linkmapper",
   repos = "https://ebenogoe.r-universe.dev"
 )
+
+# OR install from GitHub (builds from source; needs Rtools on Windows / Xcode on macOS):
+# install.packages("remotes")
+remotes::install("ebenogoe/linkmapper")
 
 # Launch the app
 linkmapper::run_linkmapper()
@@ -110,7 +123,7 @@ linkmapper/                    # Package root (lowercase for CRAN)
 ├── LICENSE
 ├── README.md
 ├── R/
-│   ├── run_app.R              # run_linkmapper() — launches the Shiny app
+│   ├── run_app.R              # run_linkmapper(): launches the Shiny app
 │   ├── read_data.R            # validate_mapmaker_file(), read_f2_data()
 │   ├── analysis.R             # prior_analysis_lm(), suggest_lod_lm()
 │   ├── grouping.R             # group_markers(), twopts_analysis()
@@ -162,7 +175,7 @@ The Plant Genome.
 
 ## License
 
-MIT — see [LICENSE](LICENSE) for details.
+MIT. See [LICENSE](LICENSE) for details.
 
 ---
 
