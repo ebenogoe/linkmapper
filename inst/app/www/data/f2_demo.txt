@@ -1,0 +1,38 @@
+data type f2 intercross
+20 10 2
+
+*D1M1
+A B H A B H A H H B A B H H H H H H A B
+
+*D1M2
+A B H A B H H H H H A B H H H H H H A B
+
+*D1M3
+A B H A B H H B H H A B B A H H H B A B
+
+*D1M4
+A B H A B H H B H H A H B A H H H H A B
+
+*D1M5
+A B H A B H H B H H A H B A B H H H A H
+
+*D2M1
+B A H A B H B A B H H H A B H B H H B A
+
+*D2M2
+B A H A B H H A B H H H A B H B H A H A
+
+*D2M3
+B A H A B H H H B H H H A B H H H A H A
+
+*D2M4
+B A H A B H H H H H H H A B H H H A H A
+
+*D2M5
+B A H A B H H H H H H H A B H H B A H H
+
+*FT_days
+62.3 78.1 70.5 61.8 77.4 71.2 63.5 69.8 72.1 76.3 64.2 75.8 68.9 71.7 69.4 70.8 72.4 69.1 62.7 77.9
+
+*PH_cm
+153.7 131.2 144.8 132.6 155.3 143.1 151.9 134.7 152.4 142.5 140.8 145.3 133.6 154.1 141.7 152.8 143.9 141.3 153.2 130.8

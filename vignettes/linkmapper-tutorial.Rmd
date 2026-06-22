@@ -1,0 +1,204 @@
+---
+title: "Linkmapper Tutorial: Linkage Mapping with the F2 Demo Dataset"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Linkmapper Tutorial: Linkage Mapping with the F2 Demo Dataset}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+## Introduction
+
+This tutorial walks through a complete linkage mapping analysis using the demo
+dataset bundled with Linkmapper. The dataset is an F2 intercross population
+comprising **188 individuals**, **62 markers**, and **2 phenotype traits**. It
+represents the validation dataset used in the Linkmapper paper and reproduces
+the results reported there.
+
+By the end of this tutorial you will have:
+
+- Uploaded the demo file and completed prior analysis
+- Grouped 62 markers into 5 linkage groups
+- Ordered markers within each group using the RECORD algorithm
+- Generated a linkage map totalling approximately 675.6 cM
+- Run a QTL scan on one of the two phenotype traits
+
+Each step below corresponds to one tab in the Linkmapper interface.
+
+---
+
+## Step 1: Uploading data and prior analysis
+
+### Uploading the demo file
+
+From the **Upload & Analyse** tab, click **Download demo dataset** to save the
+bundled F2 demo file to your computer, then click **Browse** and select it. The
+file is in MAPMAKER format with the header:
+
+```
+data type f2 intercross
+188 62 2
+```
+
+Linkmapper reads the file and displays a confirmation message showing the number
+of individuals (188), markers (62), and phenotype columns (2) detected.
+
+### Expected prior analysis results
+
+Once the file is loaded, click **Run prior analysis**. The output should show:
+
+- **Missing data:** The demo dataset is fully genotyped — no missing data bars
+  appear in the missing data plot (0% missingness across all markers and
+  individuals).
+- **Segregation distortion:** The chi-squared test is run for all 62 markers under
+  the expected 1:2:1 (AA:AB:BB) ratio for an F2 intercross. In the demo dataset,
+  **0 markers** show significant distortion at the default threshold (p < 0.05
+  after Bonferroni correction), so all 62 markers proceed to grouping.
+- **Traits detected:** 2 phenotype columns are listed, available for QTL analysis
+  in Step 5.
+- **Suggested LOD threshold:** A LOD of approximately **3.84** is computed based on
+  dataset size. This value is pre-filled in the grouping panel.
+
+---
+
+## Step 2: Marker grouping
+
+Navigate to the **Group Markers** tab. The suggested LOD (≈ 3.84) and a default
+maximum recombination frequency of **0.50** are pre-filled.
+
+Click **Run grouping**. Expected output:
+
+| Linkage group | Markers assigned |
+|---|---|
+| LG 1 | 13 |
+| LG 2 | 12 |
+| LG 3 | 13 |
+| LG 4 | 12 |
+| LG 5 | 12 |
+| **Total linked** | **62** |
+| Unlinked | 0 |
+
+All 62 markers form 5 groups with no unlinked markers, consistent with the known
+5-chromosome structure of the mapping population. If you obtain a different number
+of groups, try adjusting the LOD threshold slightly (±0.5) and re-running.
+
+---
+
+## Step 3: Marker ordering
+
+Navigate to the **Order Groups** tab. Select **RECORD** as the ordering algorithm
+(recommended for F2 intercross data; RECORD minimises the total number of
+recombinations across the ordered sequence).
+
+Click **Order all groups**. Ordering runs sequentially for all 5 linkage groups.
+Progress messages appear as each group completes. For the demo dataset:
+
+- **LG 1** — 13 markers ordered; log-likelihood ≈ **−1722.934**
+- LG 2–5 — ordered with comparable log-likelihoods
+
+If you prefer to compare algorithms, you can re-run with RCD or UG and compare the
+resulting log-likelihoods. For the demo dataset, RECORD and RCD produce similar
+orderings; UG may produce slightly longer maps on some groups.
+
+---
+
+## Step 4: Linkage map generation
+
+Navigate to the **Linkage Map** tab. Choose a **mapping function** (Kosambi is the
+default and is appropriate for most plant mapping populations), enter a map title,
+marker label prefix, and colour preference, then click **Generate map**.
+
+### Expected output
+
+The linkage map is displayed as an interactive plotly figure. Hover over any marker
+to see its name and cM position. A summary table below the map shows statistics per
+linkage group:
+
+| LG | Markers | Length (cM) |
+|---|---|---|
+| 1 | 13 | ~145 |
+| 2 | 12 | ~130 |
+| 3 | 13 | ~140 |
+| 4 | 12 | ~125 |
+| 5 | 12 | ~136 |
+| **Total** | **62** | **~675.6** |
+
+*Exact values may vary slightly depending on the mapping function selected.*
+
+Click **Download map (PNG)** to save a publication-quality static version, and
+**Download statistics (CSV)** to save the per-group summary table.
+
+---
+
+## Step 5: QTL analysis
+
+Navigate to the **QTL Analysis** tab. This step requires that Steps 1–4 are
+complete and that the data file contains at least one phenotype column (the demo
+dataset has 2).
+
+### Running a scan
+
+1. Select a phenotype from the dropdown (e.g. Trait 1).
+2. Choose a scanning method: **Interval Mapping (IM)** uses the standard EM
+   algorithm; **CIM (Composite Interval Mapping)** accounts for background markers
+   and typically gives sharper QTL peaks.
+3. Set a LOD significance threshold. A threshold of **3.0** is commonly used as a
+   genome-wide suggestive threshold for F2 populations with ~60 markers; **3.5–4.0**
+   is more stringent.
+4. Click **Run QTL scan**.
+
+### Interpreting the output
+
+The LOD profile plot shows the LOD score at every position across all five linkage
+groups. Peaks exceeding the threshold are highlighted and listed in the QTL summary
+table with their linkage group, peak position (cM), and peak LOD score.
+
+> **Note:** QTL results depend on the phenotype selected, the scanning method, and
+> the significance threshold. Run the scan and interpret the LOD profile in the
+> context of your study organism and research question. The demo dataset results are
+> provided for workflow validation only and should not be used as biological
+> conclusions.
+
+---
+
+## Interpreting linkage group statistics
+
+The summary table produced in Step 4 gives three key statistics per linkage group:
+
+- **Number of markers:** More markers per group generally gives better map
+  resolution. Very few markers per group may indicate poor coverage of that
+  chromosome.
+- **Total length (cM):** Expected total genome length for the organism should be
+  known approximately. Groups that are unusually long may contain markers from
+  multiple chromosomes that were incorrectly grouped (consider tightening the LOD
+  threshold).
+- **Average inter-marker interval (cM):** Computed as length / (markers − 1). For
+  QTL mapping, an average interval < 20 cM is generally adequate; < 10 cM gives
+  good resolution.
+
+In a breeding context, the linkage map is used to:
+
+- Position QTL relative to flanking markers for marker-assisted selection
+- Calculate recombination frequencies between loci of interest
+- Serve as the foundation for comparative genomics or genomic selection studies
+
+---
+
+## Downloading outputs
+
+The following files are available for download after completing the workflow:
+
+| Step | Download | Format |
+|---|---|---|
+| Prior analysis | Missing data plot | PNG |
+| Prior analysis | Segregation test table | CSV |
+| Marker grouping | Group assignment table | CSV |
+| Marker ordering | Ordered sequence summary | CSV |
+| Linkage map | Linkage map figure | PNG |
+| Linkage map | Per-group statistics table | CSV |
+| QTL analysis | LOD profile plot | PNG |
+| QTL analysis | QTL summary table | CSV |

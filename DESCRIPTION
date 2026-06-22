@@ -1,0 +1,45 @@
+Package: linkmapper
+Title: Linkmapper: A GUI for Linkage Mapping and QTL Visualisation
+Version: 0.1.0
+Authors@R: c(
+    person("Ebenezer", "Ogoe",
+           role = c("aut", "cre"),
+           email = "ebenezerogoe@gmail.com"),
+    person("Michael", "Obeng",
+           role = "ctb"),
+    person("Barnie Stephen", "Amoako",
+           role = "ctb")
+  )
+Description: A Shiny web application that wraps the 'onemap' R package to let
+    users perform linkage mapping and QTL visualisation on biparental mapping
+    populations (F2 intercross and backcross) without writing any code.
+    Provides a graphical workflow for data upload, segregation distortion
+    testing, two-point linkage analysis, marker grouping, linkage group
+    ordering, and final linkage map generation and download. Designed for
+    students and researchers in molecular genetics and plant breeding who
+    require a reproducible, open-source alternative to commercial linkage
+    mapping software.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Depends:
+    R (>= 4.1.0)
+Imports:
+    shiny (>= 1.7.0),
+    onemap,
+    tools
+Suggests:
+    shinyjs (>= 2.1.0),
+    waiter,
+    bslib (>= 0.5.0),
+    bsicons,
+    qtl,
+    ggplot2,
+    plotly,
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown
+URL: https://github.com/ebenogoe/linkmapper
+BugReports: https://github.com/ebenogoe/linkmapper/issues
+VignetteBuilder: knitr

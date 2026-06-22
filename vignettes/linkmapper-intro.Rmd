@@ -1,0 +1,222 @@
+---
+title: "Introduction to Linkmapper"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to Linkmapper}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+## Overview
+
+Linkmapper is a free, open-source Shiny web application for linkage mapping and
+QTL visualisation in biparental mapping populations. It wraps the
+[onemap](https://cran.r-project.org/package=onemap) R package and the
+[qtl](https://cran.r-project.org/package=qtl) package behind a graphical
+interface, allowing users to move from raw genotype data to a finalised linkage
+map and QTL scan without writing any R code.
+
+The application is structured as a five-step guided workflow. Each step unlocks
+only after the previous step has been completed successfully, preventing out-of-order
+analysis.
+
+```{r workflow, echo=FALSE, message=FALSE}
+if (requireNamespace("DiagrammeR", quietly = TRUE)) {
+  DiagrammeR::grViz("
+    digraph workflow {
+      graph [rankdir=LR, fontname=Helvetica]
+      node [shape=box, style=filled,
+            fontname=Helvetica, fontsize=11]
+
+      A [label='Upload .txt', fillcolor='#fef3e2']
+      B [label='Prior analysis', fillcolor='#e8f2ec']
+      C [label='Marker grouping', fillcolor='#e8f2ec']
+      D [label='Ordering', fillcolor='#e8f2ec']
+      E [label='Linkage map', fillcolor='#e8f2ec']
+      F [label='QTL analysis', fillcolor='#e8f2ec']
+
+      A->B->C->D->E->F
+    }
+  ")
+} else {
+  message("Install DiagrammeR to render the workflow diagram: install.packages('DiagrammeR')")
+}
+```
+
+---
+
+## Installation
+
+### Hosted web app
+
+The easiest way to use Linkmapper is through the hosted version on ShinyApps.io.
+No installation is required — open the URL in any modern browser and begin uploading
+your data immediately.
+
+<!-- FILL: add ShinyApps.io URL -->
+
+### R package (local)
+
+To run Linkmapper locally, install it from R-universe:
+
+```r
+install.packages("linkmapper",
+  repos = "https://<!-- FILL: username -->.r-universe.dev"
+)
+
+linkmapper::run_linkmapper()
+```
+
+This opens the app in your default browser. Running locally removes the session
+time limits of the hosted version and allows you to work with larger datasets.
+
+---
+
+## Data requirements
+
+### File format
+
+Linkmapper accepts genotype data in **MAPMAKER `.txt` format**. The file must begin
+with a header line specifying the data type, followed by a line declaring the number
+of individuals, markers, and phenotype columns:
+
+```
+data type f2 intercross
+188 62 2
+```
+
+Supported data type strings:
+
+- `f2 intercross` — F2 intercross population
+- `backcross` — backcross population
+
+### Genotype encoding
+
+Genotypes are encoded per MAPMAKER conventions:
+
+| Code | F2 meaning | Backcross meaning |
+|------|------------|-------------------|
+| `A`  | Homozygous parent 1 | Parent 1 homozygote |
+| `B`  | Homozygous parent 2 | Backcross heterozygote |
+| `H`  | Heterozygous | (not used) |
+| `-`  | Missing | Missing |
+
+### Phenotype columns
+
+Phenotype columns are optional for linkage mapping but are **required for QTL
+analysis**. If your file contains phenotype data, it must be declared in the header
+(the third number on the second line). Phenotype values should be numeric; missing
+phenotype data should be encoded as `-`.
+
+---
+
+## The five-step workflow
+
+### Step 1 — Upload and prior analysis
+
+Upload your MAPMAKER `.txt` file. Linkmapper validates the file format and reads the
+data using `onemap::read_mapmaker()`. The prior analysis panel then displays:
+
+- A **missing data plot** showing the proportion of missing genotype calls per marker
+  and per individual, helping identify low-quality markers or individuals to consider
+  removing before proceeding.
+- A **segregation distortion test** (chi-squared) for each marker. Markers that
+  deviate significantly from expected Mendelian ratios are flagged. Users can choose
+  whether to retain or exclude distorted markers before grouping.
+
+At the end of this step, the number of individuals, markers, and phenotype columns
+is summarised, and a suggested LOD threshold is computed based on dataset size.
+
+### Step 2 — Marker grouping
+
+Markers are grouped into putative linkage groups using two-point recombination
+frequency estimates (`onemap::rf_2pts()`). You set a **LOD threshold** and a
+**maximum recombination frequency** (max RF); markers that meet both criteria are
+placed in the same group.
+
+The output is a table showing the number of markers assigned to each group and the
+number of unlinked markers. You can adjust the LOD and max RF parameters and
+re-run grouping until the result is biologically sensible (i.e. the number of groups
+matches the expected haploid chromosome number of your organism).
+
+### Step 3 — Marker ordering
+
+Within each linkage group, markers are ordered to minimise the total map length.
+Linkmapper offers three ordering algorithms:
+
+- **RECORD** — Recombination Counting and Ordering. Recommended for most F2
+  datasets; produces the most accurate order in simulation studies.
+- **RCD** — Rapid Chain Delineation. Fast heuristic; suitable as a starting point
+  or for very large groups.
+- **UG (Unidirectional Growth)** — Alternative heuristic; useful when RECORD
+  produces unexpected results.
+
+Ordering is run on each linkage group in turn. The log-likelihood of the final
+order is reported for each group, allowing you to compare algorithms.
+
+### Step 4 — Linkage map generation
+
+The ordered sequences are passed to `onemap::map()` to estimate inter-marker
+distances using the selected mapping function (Kosambi or Haldane). The final
+linkage map is displayed as:
+
+- An **interactive plot** (plotly) where you can hover over markers to see their
+  names and positions.
+- A **static PNG** suitable for publication.
+
+A summary table shows the number of markers and total length (cM) per linkage
+group. Both the plot and the summary table are available for download.
+
+### Step 5 — QTL analysis
+
+If your data file contains phenotype columns, you can run a QTL scan on the
+completed map. Choose a phenotype, a scanning method (interval mapping or CIM),
+and a LOD significance threshold. The output is:
+
+- A **LOD profile plot** showing the LOD score across the genome for the selected
+  phenotype.
+- A **QTL summary table** listing linkage group, position, and peak LOD score for
+  all loci exceeding the threshold.
+
+Both outputs are available for download.
+
+---
+
+## Downloading results
+
+Results are available for download at each step:
+
+| Step | Available downloads |
+|---|---|
+| Prior analysis | Missing data plot (PNG), segregation test table (CSV) |
+| Marker grouping | Group assignment table (CSV) |
+| Marker ordering | Ordered sequence summary (CSV) |
+| Linkage map | Linkage map plot (PNG), marker statistics table (CSV) |
+| QTL analysis | LOD profile plot (PNG), QTL summary table (CSV) |
+
+---
+
+## Limitations
+
+- **Population types:** Only F2 intercross and backcross populations are currently
+  supported. RILs, outcrossing populations, and polyploids are planned for future
+  releases.
+- **Session time limits:** The hosted ShinyApps.io version enforces free-tier
+  session and compute limits. For large datasets or long-running analyses, install
+  the R package and run locally.
+- **Single-file input:** Linkmapper accepts one data file per session. Multi-file
+  or multi-population analyses require running separate sessions.
+- **QTL method:** The current QTL module uses the `qtl` package (interval mapping
+  and CIM). Multi-trait or multi-QTL model selection is not yet implemented.
+
+---
+
+## Getting help
+
+- **Bug reports and feature requests:** Open an issue on
+  [GitHub](https://github.com/<!-- FILL: repo path -->/issues).
+- **Usage questions:** See the tutorial vignette (`vignette("linkmapper-tutorial")`).

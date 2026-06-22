@@ -1,0 +1,9 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^app\.R$
+^app_bslib_scaffold\.R$
+^CLAUDE\.md$
+^\.claude$
+^rsconnect$
+^LICENSE\.md$
+^data$
