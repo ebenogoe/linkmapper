@@ -65,7 +65,7 @@ To run Linkmapper locally, install it from R-universe:
 
 ```r
 install.packages("linkmapper",
-  repos = "https://<!-- FILL: username -->.r-universe.dev"
+  repos = c('https://ebenogoe.r-universe.dev', 'https://cloud.r-project.org')
 )
 
 linkmapper::run_linkmapper()
