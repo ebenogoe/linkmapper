@@ -37,6 +37,7 @@ Suggests:
     qtl,
     ggplot2,
     plotly,
+    DiagrammeR,
     testthat (>= 3.0.0),
     knitr,
     rmarkdown

@@ -54,10 +54,8 @@ if (requireNamespace("DiagrammeR", quietly = TRUE)) {
 ### Hosted web app
 
 The easiest way to use Linkmapper is through the hosted version on ShinyApps.io.
-No installation is required — open the URL in any modern browser and begin uploading
-your data immediately.
-
-<!-- FILL: add ShinyApps.io URL -->
+No installation is required - open the URL in any modern browser and begin uploading
+your data immediately: <https://project-genaxy.shinyapps.io/Linkmapper/>
 
 ### R package (local)
 
@@ -91,8 +89,8 @@ data type f2 intercross
 
 Supported data type strings:
 
-- `f2 intercross` — F2 intercross population
-- `backcross` — backcross population
+- `f2 intercross` - F2 intercross population
+- `backcross` - backcross population
 
 ### Genotype encoding
 
@@ -116,7 +114,7 @@ phenotype data should be encoded as `-`.
 
 ## The five-step workflow
 
-### Step 1 — Upload and prior analysis
+### Step 1 - Upload and prior analysis
 
 Upload your MAPMAKER `.txt` file. Linkmapper validates the file format and reads the
 data using `onemap::read_mapmaker()`. The prior analysis panel then displays:
@@ -131,7 +129,7 @@ data using `onemap::read_mapmaker()`. The prior analysis panel then displays:
 At the end of this step, the number of individuals, markers, and phenotype columns
 is summarised, and a suggested LOD threshold is computed based on dataset size.
 
-### Step 2 — Marker grouping
+### Step 2 - Marker grouping
 
 Markers are grouped into putative linkage groups using two-point recombination
 frequency estimates (`onemap::rf_2pts()`). You set a **LOD threshold** and a
@@ -143,22 +141,22 @@ number of unlinked markers. You can adjust the LOD and max RF parameters and
 re-run grouping until the result is biologically sensible (i.e. the number of groups
 matches the expected haploid chromosome number of your organism).
 
-### Step 3 — Marker ordering
+### Step 3 - Marker ordering
 
 Within each linkage group, markers are ordered to minimise the total map length.
 Linkmapper offers three ordering algorithms:
 
-- **RECORD** — Recombination Counting and Ordering. Recommended for most F2
+- **RECORD** - Recombination Counting and Ordering. Recommended for most F2
   datasets; produces the most accurate order in simulation studies.
-- **RCD** — Rapid Chain Delineation. Fast heuristic; suitable as a starting point
+- **RCD** - Rapid Chain Delineation. Fast heuristic; suitable as a starting point
   or for very large groups.
-- **UG (Unidirectional Growth)** — Alternative heuristic; useful when RECORD
+- **UG (Unidirectional Growth)** - Alternative heuristic; useful when RECORD
   produces unexpected results.
 
 Ordering is run on each linkage group in turn. The log-likelihood of the final
 order is reported for each group, allowing you to compare algorithms.
 
-### Step 4 — Linkage map generation
+### Step 4 - Linkage map generation
 
 The ordered sequences are passed to `onemap::map()` to estimate inter-marker
 distances using the selected mapping function (Kosambi or Haldane). The final
@@ -171,7 +169,7 @@ linkage map is displayed as:
 A summary table shows the number of markers and total length (cM) per linkage
 group. Both the plot and the summary table are available for download.
 
-### Step 5 — QTL analysis
+### Step 5 - QTL analysis
 
 If your data file contains phenotype columns, you can run a QTL scan on the
 completed map. Choose a phenotype, a scanning method (interval mapping or CIM),
@@ -218,5 +216,5 @@ Results are available for download at each step:
 ## Getting help
 
 - **Bug reports and feature requests:** Open an issue on
-  [GitHub](https://github.com/<!-- FILL: repo path -->/issues).
+  [GitHub](https://github.com/ebenogoe/linkmapper/issues).
 - **Usage questions:** See the tutorial vignette (`vignette("linkmapper-tutorial")`).

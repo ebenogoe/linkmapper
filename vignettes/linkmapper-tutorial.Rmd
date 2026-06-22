@@ -51,7 +51,7 @@ of individuals (188), markers (62), and phenotype columns (2) detected.
 
 Once the file is loaded, click **Run prior analysis**. The output should show:
 
-- **Missing data:** The demo dataset is fully genotyped — no missing data bars
+- **Missing data:** The demo dataset is fully genotyped - no missing data bars
   appear in the missing data plot (0% missingness across all markers and
   individuals).
 - **Segregation distortion:** The chi-squared test is run for all 62 markers under
@@ -97,8 +97,8 @@ recombinations across the ordered sequence).
 Click **Order all groups**. Ordering runs sequentially for all 5 linkage groups.
 Progress messages appear as each group completes. For the demo dataset:
 
-- **LG 1** — 13 markers ordered; log-likelihood ≈ **−1722.934**
-- LG 2–5 — ordered with comparable log-likelihoods
+- **LG 1** - 13 markers ordered; log-likelihood ≈ **−1722.934**
+- LG 2-5 - ordered with comparable log-likelihoods
 
 If you prefer to compare algorithms, you can re-run with RCD or UG and compare the
 resulting log-likelihoods. For the demo dataset, RECORD and RCD produce similar
