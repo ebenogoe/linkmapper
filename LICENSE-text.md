@@ -1,0 +1,4 @@
+# License
+
+    YEAR: 2022-2026
+    COPYRIGHT HOLDER: Ogoe Ebenezer, Obeng Michael, Amoako Stephen
