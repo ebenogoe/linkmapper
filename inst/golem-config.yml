@@ -1,0 +1,16 @@
+default:
+  golem_name: linkmapper
+  golem_version: 0.2.0
+  app_prod: no
+  hosted: no
+  max_upload_mb: 100
+  max_markers: 5000
+  max_perm: 10000
+production:
+  app_prod: yes
+shinyapps:
+  app_prod: yes
+  hosted: yes
+  max_upload_mb: 20
+  max_markers: 1500
+  max_perm: 1000

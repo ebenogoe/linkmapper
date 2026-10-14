@@ -1,0 +1,14 @@
+tests
+dev
+data-raw
+man
+vignettes
+docs
+pkgdown
+.github
+.claude
+_pkgdown.yml
+README.md
+NEWS.md
+Linkmapper.Rproj
+CLAUDE.md

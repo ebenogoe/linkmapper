@@ -1,0 +1,56 @@
+---
+title: "Getting started"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 8, fig.height = 7)
+```
+
+This article runs the app's workflow in code, on the simulated backcross example from onemap (150 individuals, 67 markers, one trait).
+
+```{r}
+library(linkmapper)
+d <- linkmapper_demo("bc")
+d
+```
+
+## Quality control
+
+```{r}
+q <- qc_summary(d)
+q$n_distorted
+d <- filter_markers(d, max_missing = 0.25)
+```
+
+## Linkage groups and marker order
+
+```{r}
+g <- linkage_groups(d)
+g
+m <- order_groups(g, method = "record", map_fun = "kosambi", seed = 1)
+map_summary(m)
+```
+
+## QTL mapping
+
+```{r}
+cross <- build_cross(d, m)
+r <- scan_qtl(cross, method = "hk", n_perm = 200, seed = 1)
+r$peaks
+plot_lod(r)
+```
+
+```{r, fig.height = 8}
+plot_linkage_map(m, r)
+```
+
+## Reproducing an analysis
+
+Every setting the app records is a list that `run_analysis()` replays:
+
+```{r}
+s <- default_settings(d)
+s$qtl$n_perm <- 200
+res <- run_analysis(linkmapper_demo("bc"), s)
+identical(res$map$positions, m$positions)
+```

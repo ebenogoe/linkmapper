@@ -1,0 +1,30 @@
+url: https://ebenogoe.github.io/linkmapper/
+template:
+  bootstrap: 5
+  bslib:
+    primary: "#0f766e"
+    base_font: {google: "Manrope"}
+    code_font: {google: "JetBrains Mono"}
+    bg: "#f4f8f7"
+    fg: "#21403d"
+navbar:
+  structure:
+    left: [intro, reference, articles, news]
+    right: [search, github]
+reference:
+  - title: The app
+    contents: [run_app, run_linkmapper]
+  - title: Data
+    contents: [read_cross, add_traits, write_mapmaker, demo_info, linkmapper_demo, validate_lm_file]
+  - title: Quality control
+    contents: [qc_summary, filter_markers]
+  - title: Linkage groups and maps
+    contents: [suggest_lod, linkage_groups, group_markers, order_methods, order_groups, map_positions, map_summary]
+  - title: QTL mapping
+    contents: [build_cross, qtl_methods, scan_qtl, genotype_effect]
+  - title: Plots
+    contents: [starts_with("plot_"), map_plot_size, theme_linkmapper]
+  - title: Analyses, reports and sessions
+    contents: [default_settings, run_analysis, build_script, build_report, save_session]
+  - title: Package
+    contents: [linkmapper-package]

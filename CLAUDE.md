@@ -11,12 +11,12 @@
 **Tool name:** Linkmapper  
 **What it does:** A GUI-based Shiny web application that wraps the `onemap` R package
 to let users perform linkage mapping and QTL visualisation on biparental mapping
-populations (currently F2 intercrosses and backcrosses) without writing any code.  
+populations (F2 intercross, backcross and RIL) without writing any code.  
 **Primary users:** Students and instructors in molecular genetics / agricultural
 biotechnology; researchers who want a GUI alternative to scripting onemap directly.  
 **Original context:** Final-year undergraduate dissertation, KNUST (Kwame Nkrumah
 University of Science and Technology), Ghana, 2022. Supervisor: Dr. Alexander W. Kena.  
-**Authors:** Ogoe Ebenezer, Obeng Michael, Amoako Barnie Stephen.
+**Authors:** Ogoe Ebenezer, Obeng Michael, Amoako Stephen.
 
 **Publication goal:** Adapt and publish as a peer-reviewed software paper. Primary target
 journal: *The Plant Genome* (Wiley). Stretch target: *Bioinformatics* (OUP).  
@@ -26,216 +26,72 @@ call, supported by exported utility functions.
 
 ---
 
-## 2. Repository Layout
+## 2. Repository Layout (version 0.2, golem package)
 
 ```
-Linkmapper/
-├── app.R                  # Single-file Shiny app — the ENTIRE application
-├── app.R.bak              # Backup of app.R — DO NOT MODIFY OR DELETE
-├── Linkmapper.Rproj       # RStudio project file
-├── README.md
-├── rsconnect/             # ShinyApps.io deployment metadata — DO NOT MODIFY
-│   └── shinyapps.io/
-│       └── project-genaxy/
-│           └── Linkmapper.dcf
-└── www/                   # Static assets served by Shiny
-    ├── Faculty_logo.jpg
-    ├── KNUST_logo.jpg
-    ├── Montserrat-Regular.otf
-    ├── styler.css         # Custom CSS — modify with care
-    ├── Welcome.html       # Welcome page content
-    └── Welcome.html.bak   # Backup — DO NOT MODIFY OR DELETE
-```
-
-**Future layout (R package):** See Section 9.
-
----
-
-## 3. Current app.R Architecture
-
-The app is a standard single-file Shiny app (lines 1–537) with this structure:
-
-### Dependencies (lines 1–7)
-```r
-library(shiny)
-library(shinyjs)
-library(tools)
-library(ggplot2)
-library(onemap)
-library(shinydashboard)
-library(shinydashboardPlus)
-```
-
-### UI (lines 9–210)
-Built with `dashboardPage()` from `shinydashboard`. Four functional modules plus
-Welcome, Help, and About Us pages.
-
-| Module | Tab name | Purpose |
-|--------|----------|---------|
-| 1 | `analysis_page` | Prior analysis — upload TXT, missing data plot, segregation distortion |
-| 2 | `grouping_page` | Marker grouping — LOD, max RF, mapping function, two-point analysis |
-| 3 | `ordering_page` | Marker ordering — RECORD / RCD / UNIDIRECTIONAL algorithms |
-| 4 | `mapping_page` | Generate final linkage map — title, prefix, colour, download |
-
-### Server (lines 214–529)
-Organised into four explicit sections (comments in code):
-
-- **Section 1** (lines 216–226): Global variables — `reactiveValues`, bare variables
-  (`code_succeeded`, `linkage_groups`, `f2data`, etc.)
-- **Section 2** (lines 229–301): `observeEvent()` expressions — button click handlers
-  with `tryCatch` wrappers
-- **Section 3** (lines 305–355): `observe()` expressions + download handlers
-- **Section 4** (lines 359–528): Core functions — `prior_analysis()`, `groupings()`,
-  `twoptsAnalysis()`, `orderLG()`, `elegant_map_generator()`
-
-### Key onemap workflow
-```
-read_mapmaker() → test_segregation() → rf_2pts() → group() → make_seq() →
-record()/rcd()/ug() → map() → draw_map2()
-```
-
----
-
-## 4. Known Code Quality Issues (Audit)
-
-These are the areas Claude Code should fix. Fix them incrementally — do not refactor
-everything in one session.
-
-### 4.1 Critical bugs / correctness issues
-- `elegant_map_generator()` uses `code_succeeded` (a bare global, line 221) as a
-  dependency guard, but `code_succeeded` is never reset when a new file is uploaded.
-  A session with a failed upload followed by a valid one may behave unexpectedly.
-- The `Gs_groups`, `Gs_ords`, `Gs_maps`, `Gs_maps_final` vectors are initialised with
-  `numeric(n.groups)` (lines 473–476) but used as lists. Should be `vector("list", n.groups)`.
-- `generated_map.png` is written to the working directory (line 508), which is
-  problematic in multi-user or containerised deployments. Should use `tempfile()`.
-- Section 1 mixes `reactiveValues` with bare global assignment (`<<-`). The bare
-  globals are not reactive and create subtle state bugs across sessions.
-
-### 4.2 Best practice violations
-- Bare `<<-` assignments used throughout Section 4 to mutate globals from inside
-  functions — anti-pattern in Shiny; all shared state should go through `reactiveValues`.
-- `observeEvent()` wraps a `reactive()` call inside it (lines 234–235, 251–252, etc.) —
-  this is incorrect usage. `reactive()` should be defined outside `observeEvent()`.
-- `output$*` assignments inside non-reactive helper functions (e.g., `prior_analysis()`,
-  `groupings()`) — side-effect-heavy functions that are hard to test and debug.
-- No input validation beyond file extension check. Malformed but `.txt`-named files
-  will crash with an unhelpful error.
-- `tryCatch` error messages concatenate with `sep = "\n"` but `paste()` doesn't use
-  `sep` the same way as `paste0()` — minor but inconsistent.
-- `disabled()` on a `downloadButton` before the map is generated is correct, but
-  `shinyjs::enable()` is called inside `renderImage()`, which is a side effect inside
-  a render function — fragile.
-- Icon names use `verify_fa = FALSE` throughout, suppressing Font Awesome warnings
-  rather than fixing them. Update to valid FA6 icon names.
-
-### 4.3 UI / UX issues
-- The current UI uses `shinydashboard` which renders a flat, dated AdminLTE2 look.
-  Target: migrate to `bslib` with Bootstrap 5 for a modern, card-based layout.
-- All sidebar icons are `icon("gears")` — non-descriptive; should use meaningful icons
-  per module (e.g., `microscope`, `diagram-project`, `map`, `download`).
-- No progress indicator for long-running operations (ordering + map generation can
-  take minutes). Implement `shiny::withProgress()` or a `waiter` spinner.
-- No persistent state between modules — if the user refreshes or navigates away,
-  all uploaded data is lost. Consider `shinyjs::extendShinyjs()` or `session`-scoped
-  `reactiveValues` with a clear workflow indicator showing which steps are complete.
-- Welcome page is a static HTML file (`Welcome.html`) — replace with a proper Shiny
-  `tabItem` using `bslib` cards and embedded sample data download link.
-
----
-
-## 5. Planned New Features (for publication)
-
-Add these features to strengthen the paper's contribution. Implement in order of priority:
-
-### Priority 1 — Core feature gaps
-- [ ] **QTL scanning module (Module 5):** Expose `onemap`'s QTL scanning capability.
-  Accept phenotype data, run interval mapping or CIM, display LOD score profile,
-  export QTL table. This is the biggest gap between current state and publication-ready.
-- [ ] **Backcross support:** The app currently accepts F2 data via `read_mapmaker()`.
-  Add explicit UI pathway and validation for backcross populations.
-- [ ] **Interactive linkage map:** Replace the static PNG output from `draw_map2()` with
-  an interactive plot using `plotly` — allow hover-to-see-marker-info.
-
-### Priority 2 — Usability improvements
-- [ ] **Sample data download:** Provide the F2 demo dataset as a downloadable file from
-  within the app so users can try it immediately without hunting for test data.
-- [ ] **Workflow progress indicator:** Visual stepper (Module 1 → 2 → 3 → 4) showing
-  which steps are complete, locked, or available. Prevents out-of-order usage errors.
-- [ ] **Results summary table:** Downloadable CSV of marker statistics per linkage group
-  (currently displayed only as console text).
-- [ ] **Export to Excel:** Add `.xlsx` export of marker statistics table using `openxlsx`.
-
-### Priority 3 — Polish
-- [ ] **Help tooltips:** Inline `?` tooltips (using `shinyBS` or `bslib` popovers) for
-  technical parameters (LOD threshold, mapping functions, ordering algorithms).
-- [ ] **Dark mode toggle:** Trivial with `bslib` — adds perceived modernity.
-- [ ] **Responsive layout:** Test and fix on tablet/mobile screen widths.
-
----
-
-## 6. UI Redesign Guidelines
-
-When redesigning the UI, follow these principles:
-
-- **Framework:** Migrate from `shinydashboard` to `bslib` (Bootstrap 5). Use
-  `bslib::page_navbar()` as the top-level container.
-- **Cards:** Use `bslib::card()` with `card_header()` and `card_body()` for each
-  module section. Avoid raw `sidebarPanel()` / `mainPanel()` layout.
-- **Colour palette:** Keep the existing blue accent (`#2c3e50` header,
-  `#3498db` primary action). Do not introduce more than 3 brand colours.
-- **Typography:** Montserrat is already in `www/` — ensure it loads correctly via
-  `@font-face` in `styler.css`. Use 16px base, 1.5 line-height for body text.
-- **Shadows and depth:** Use `box-shadow: 0 2px 8px rgba(0,0,0,0.12)` on cards —
-  this alone eliminates the "flat" feel of the current AdminLTE2 theme.
-- **Buttons:** Use Bootstrap 5 filled primary buttons for main actions, outline
-  secondary for downloads. Never use bare `actionButton()` without a class.
-- **Icons:** Use Font Awesome 6 free icons. Valid names for each module:
-  `fa-flask` (prior analysis), `fa-layer-group` (grouping),
-  `fa-sort-numeric-up` (ordering), `fa-map` (linkage map), `fa-chart-line` (QTL).
-
----
-
-## 7. R Package Architecture (Target)
-
-When converting to an R package, use this structure:
-
-```
-linkmapper/                    # Package root (lowercase for CRAN)
-├── DESCRIPTION
-├── NAMESPACE
-├── LICENSE
-├── README.md
+linkmapper/
+├── DESCRIPTION, NAMESPACE, LICENSE, NEWS.md, README.md
+├── app.R                 # shinyapps.io entry point (pkgload::load_all + run_app). Do not rename.
 ├── R/
-│   ├── run_app.R              # run_linkmapper() — launches the Shiny app
-│   ├── read_data.R            # validate_mapmaker_file(), read_f2_data()
-│   ├── analysis.R             # prior_analysis_lm(), suggest_lod_lm()
-│   ├── grouping.R             # group_markers(), twopts_analysis()
-│   ├── ordering.R             # order_linkage_group()
-│   ├── mapping.R              # generate_linkage_map(), draw_interactive_map()
-│   └── utils.R                # Shared helpers
-├── inst/
-│   └── app/                   # The Shiny app lives here
-│       ├── app.R
-│       └── www/
-├── tests/
-│   └── testthat/
-├── vignettes/
-│   └── linkmapper-workflow.Rmd
-├── data/                      # Built-in demo dataset
-│   └── f2_demo.rda
-└── man/                       # Auto-generated by roxygen2
+│   ├── fct_read.R        # read_cross(), add_traits(), write_mapmaker(), demos, validate_lm_file()
+│   ├── fct_qc.R          # qc_summary(), filter_markers()
+│   ├── fct_link.R        # suggest_lod(), linkage_groups(), group_markers(), order_groups(), map_positions()
+│   ├── fct_qtl.R         # build_cross(), scan_qtl(), genotype_effect()
+│   ├── fct_plot.R        # plot_linkage_map(), plot_lod(), plot_rf_heatmap(), plot_segregation(), ...
+│   ├── fct_pipeline.R    # default_settings(), run_analysis(), build_script(), save/load_session()
+│   ├── fct_report.R      # build_report() (self-contained HTML, no pandoc)
+│   ├── mod_*.R           # one Shiny module per step plus home, guide, about
+│   ├── utils_ui.R        # theme, shared UI helpers; utils_state.R: per-session state and step bar
+│   └── app_ui.R, app_server.R, app_config.R, run_app.R
+├── inst/app/www/         # custom.css, custom.js, logo.svg, favicon.svg
+├── inst/extdata/         # f2_small.txt (2022 demo), precomputed home-page map
+├── inst/golem-config.yml # hosted limits switch on when R_CONFIG_ACTIVE = "shinyapps"
+├── tests/testthat/       # engine tests + shinytest2 smoke test
+├── data-raw/             # make_home_map.R
+├── dev/                  # screenshots.R, 03_deploy.R
+└── vignettes/articles/   # pkgdown-only articles (built on CI, where pandoc exists)
 ```
 
-**Key decisions:**
-- `run_linkmapper()` calls `shiny::runApp(system.file("app", package = "linkmapper"))`.
-- All utility functions in `R/` are exported and documented with `roxygen2`.
-- The demo F2 dataset is bundled as `data/f2_demo.rda` and accessible as `linkmapper::f2_demo`.
-- R-universe: add a `universe` field to DESCRIPTION or maintain a `packages.json`
-  in a separate `<username>/universe` repo.
-- CRAN: run `devtools::check()` with zero errors/warnings/notes before submission.
-  Key CRAN requirements: no `library()` calls inside package code (use `::` notation),
-  no internet access in tests, all examples must run in < 5s or be wrapped in `\dontrun{}`.
+Deployed to https://ebenogoe.shinyapps.io/linkmapper/ (account `ebenogoe`). The 2022 app
+remains at project-genaxy.shinyapps.io/Linkmapper; its rsconnect record is untouched.
+
+---
+
+## 3. Architecture
+
+- Engine functions (`fct_*`) are plain, exported, tested R. The app calls them; the
+  "R script" export calls the same functions through `run_analysis()`.
+- All state is per session (`new_state()` reactiveValues). Changing a step clears the
+  results after it (`reset_after()`).
+- Workflow: read_cross -> qc_summary/filter_markers -> linkage_groups (onemap rf_2pts +
+  group) -> order_groups (record/rcd/ug/seriation, seeded) -> build_cross (write MAPMAKER +
+  onemap::write_map -> qtl::read.cross("mm")) -> scan_qtl (scanone/cim + permutations).
+- onemap's map function is a global option: `order_groups()` and `build_cross()` set it
+  right before use.
+
+---
+
+## 4. Design
+
+Own identity, distinct from Clusnalyst (its sibling app): teal #0d9488 / dark teal
+#0f766e for actions, amber #f59e0b accents, ink #0f2a2a navbar, Manrope from Google Fonts,
+8 to 10 px radii, teal-topped cards, horizontal step bar, ladder motif on the home page.
+Copy is concise and professional. Do not reuse ebenezerogoe.com's design tokens.
+
+---
+
+## 5. Possible next features
+
+- Outcross (full-sib) populations via onemap's outcross pathway.
+- Multiple-QTL models (stepwiseqtl) and two-dimensional scans.
+- VCF input with parent genotypes.
+- Comparison of orders across algorithms within the app.
+
+---
+
+## 6. (removed: superseded by section 4)
+
+## 7. (removed: the package structure is in place; see section 2)
 
 ---
 
@@ -291,24 +147,18 @@ linkmapper/                    # Package root (lowercase for CRAN)
 ## 9. Hard Rules for Claude Code
 
 **NEVER do these without explicit instruction:**
-- Modify or delete `app.R.bak`, `Welcome.html.bak`, or anything in `rsconnect/`.
-- Rename `app.R` (ShinyApps.io deployment depends on this exact filename).
-- Add `library()` calls inside any function in the future R package code.
-- Introduce new R package dependencies without noting them — every new dependency
-  is a CRAN check burden and a user install cost.
-- Fabricate or assume citation details — flag any uncertain reference for manual
-  verification instead.
-- Run `shiny::runApp()` or any long-running process without warning.
-- Overwrite `styler.css` without first showing the proposed diff.
+- Modify or delete anything in `rsconnect/` other than records written by a deploy the user asked for.
+- Rename `app.R` (shinyapps.io deployment depends on it).
+- Add `library()` calls inside package functions.
+- Introduce new R package dependencies without noting them.
+- Fabricate or assume citation details; flag uncertain references for manual verification.
+- Deploy or push without the user's go-ahead.
 
 **ALWAYS do these:**
-- Use `::` notation when calling functions from non-base packages in utility functions
-  (e.g., `onemap::read_mapmaker()`, not `read_mapmaker()`).
-- Use `roxygen2`-style comments (`#'`) for all exported functions.
-- Run `styler::style_file()` on any R file after editing.
-- Use `here::here()` for file paths, never `setwd()`.
-- After any significant UI change, note which CSS classes/IDs were modified.
-- Wrap all `onemap` calls in `tryCatch()` — the package is verbose with warnings.
+- Use `::` notation for non-base packages.
+- Use roxygen2 comments for exported functions.
+- Wrap onemap calls with `quiet()` and surface errors through `safely()` in the app.
+- Keep `devtools::check()` at 0 errors, 0 warnings, 0 notes and the tests green.
 
 ---
 

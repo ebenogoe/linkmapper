@@ -1,0 +1,36 @@
+test_that("the app runs a demo from data to export", {
+  skip_on_cran()
+  skip_if_not_installed("shinytest2")
+  skip_if_not_installed("chromote")
+  skip_if(is.null(chromote::find_chrome()), "Chrome not found")
+  app <- shinytest2::AppDriver$new(run_app(),
+    name = "smoke", width = 1300, height = 900,
+    load_timeout = 60000, timeout = 60000
+  )
+  on.exit(app$stop())
+  go <- function(step) {
+    app$run_js(sprintf("Shiny.setInputValue('goto_step', '%s', {priority: 'event'})", step))
+    app$wait_for_idle()
+  }
+  go("data")
+  app$set_inputs(`data-demo` = "small")
+  app$click("data-load_demo")
+  app$wait_for_idle()
+  go("qc")
+  app$click("qc-apply")
+  app$wait_for_idle()
+  go("groups")
+  app$click("groups-go")
+  app$wait_for_idle()
+  go("order")
+  app$click("order-go")
+  app$wait_for_idle()
+  go("qtl")
+  app$set_inputs(`qtl-n_perm` = 50)
+  app$click("qtl-go")
+  app$wait_for_idle()
+  go("export")
+  expect_match(app$get_text("#stepper"), "Export")
+  report <- app$get_download("export-report")
+  expect_match(paste(readLines(report), collapse = ""), "Linkmapper report")
+})
