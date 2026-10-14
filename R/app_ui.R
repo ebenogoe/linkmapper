@@ -36,7 +36,8 @@ workspace_ui <- function(lim) {
     class = "lm-workspace",
     shiny::div(
       class = "lm-stepbar",
-      shiny::uiOutput("stepper"),
+      # uiOutput containers have no box of their own, so the tour targets this wrapper
+      shiny::div(id = "tour-steps", class = "lm-stepper-wrap", shiny::uiOutput("stepper")),
       shiny::div(
         class = "lm-stepbar-tools",
         shiny::actionLink("start_tour", shiny::tagList(bsicons::bs_icon("signpost-split"), "Tour")),

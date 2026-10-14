@@ -50,18 +50,20 @@ app_server <- function(input, output, session) {
     allow_close = TRUE, padding = 6, opacity = 0.5, done_btn_text = "Done",
     close_btn_text = "Close", next_btn_text = "Next", prev_btn_text = "Back"
   )
-  tour$step("stepper", "Workflow",
+  tour$step("tour-steps", "Workflow",
     "Seven steps from genotype file to QTL. Each step unlocks when the previous one is complete; completed steps are marked with a tick.",
     position = "bottom"
   )$
     step("data-src", "Data source", "Upload a MAPMAKER or onemap file, load a demo dataset, or resume a saved session.")$
     step("data-summary", "Summary", "Population type, individuals, markers and traits read from the file.")$
     step("dark_mode", "Theme", "Switch between light and dark themes. Downloads always use a white background.")
+  # Start shortly after switching to the workspace, once its elements have a size
   start_tour <- function() {
     goto("data")
-    tour$init()$start()
+    tour$init()
+    session$sendCustomMessage("lm-start-tour", list(delay = 400))
   }
   shiny::observeEvent(input$start_tour, start_tour())
-  shiny::observeEvent(input$lm_first_visit, if (isTRUE(input$lm_first_visit)) tour$init()$start())
+  shiny::observeEvent(input$lm_first_visit, if (isTRUE(input$lm_first_visit)) start_tour())
   mod_guide_server("guide", goto = goto, start_tour = start_tour)
 }

@@ -128,10 +128,11 @@ bslib-input-dark-mode { --text-1: #ffffff; --text-2: rgb(255 255 255 / 0.7); --v
 .lm-badge-done { background: var(--lm-primary); color: var(--lm-on-primary); font-weight: 700; border-radius: 6px; }
 
 /* Workspace and step bar */
-.lm-workspace { margin: -1rem calc(-1 * var(--bslib-spacer, 1rem)) 0; }
+/* Full-bleed workspace: cancel exactly the container-fluid side padding */
+.lm-workspace { margin: 0 calc(var(--bs-gutter-x, 1.5rem) * -0.5); }
 .lm-stepbar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 1rem;
   background: var(--lm-surface); border-bottom: 1px solid var(--lm-line); padding: 0.5rem clamp(1rem, 3vw, 2rem); box-shadow: var(--lm-shadow); }
-.lm-stepbar > .shiny-html-output { flex: 1 1 auto; min-width: 0; overflow-x: auto; scrollbar-width: thin; }
+.lm-stepper-wrap { flex: 1 1 auto; min-width: 0; overflow-x: auto; scrollbar-width: thin; }
 .lm-stepbar-tools { display: flex; gap: 1rem; flex: 0 0 auto; }
 .lm-stepbar-tools a { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600; font-size: 0.9rem; text-decoration: none; min-height: 2.25rem; }
 .lm-stepper ol { list-style: none; margin: 0; padding: 0; display: flex; align-items: center; gap: 0; min-width: max-content; }
@@ -200,7 +201,6 @@ bslib-input-dark-mode { --text-1: #ffffff; --text-2: rgb(255 255 255 / 0.7); --v
 .lm-hero-small { color: var(--lm-muted); font-size: 0.88rem; max-width: 30rem; }
 .lm-hero-card .card-body { padding: 0.5rem; }
 @media (min-width: 992px) and (min-height: 600px) {
-  .lm-home { height: calc(100dvh - 11.5rem); overflow: clip; overflow-clip-margin: 1rem; display: grid; align-items: center; }
   .lm-hero { padding: 1rem 0; }
   .lm-hero-figure { display: flex; justify-content: center; }
   .lm-hero-card { width: auto; min-width: min(30rem, 100%); max-width: 100%; }
@@ -252,3 +252,13 @@ bslib-input-dark-mode { --text-1: #ffffff; --text-2: rgb(255 255 255 / 0.7); --v
   .lm-stat-value { font-size: 1.25rem; }
   .lm-stepbar-tools { display: none; }
 }
+
+/* The page is a full-height column: content fills the space between navbar and footer,
+   the footer sits at the bottom of the window, and the home hero is centred between them */
+html { overflow-x: clip; }
+body.bslib-page-navbar { min-height: 100dvh; display: flex; flex-direction: column; }
+body.bslib-page-navbar > .container-fluid { flex: 1 0 auto; display: flex; flex-direction: column; width: 100%; }
+body.bslib-page-navbar > .container-fluid > .tab-content { flex: 1 0 auto; display: flex; flex-direction: column; }
+body.bslib-page-navbar > .container-fluid > .tab-content > .tab-pane.active { flex: 1 0 auto; display: flex; flex-direction: column; }
+.lm-home { flex: 1 0 auto; display: grid; align-items: center; width: 100%; overflow: clip; overflow-clip-margin: 1rem; }
+.lm-footer { margin-top: auto; }
